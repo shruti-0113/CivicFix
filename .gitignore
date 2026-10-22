@@ -1,0 +1,8 @@
+venv/
+__pycache__/
+*.pyc
+civicfix.db
+.env
+.idea/
+.vscode/
+frontend/uploads/

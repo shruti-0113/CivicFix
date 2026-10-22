@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicFix — Community Issue Resolution</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#6575e8">
+  <link rel="icon" type="image/png" href="/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="CivicFix">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="logo">CF</span><div><strong>CivicFix</strong><small>Turn problems into action</small></div></div>
+  <div class="topbar-actions">
+    <button class="primary install-btn" id="installBtn" style="display:none" onclick="installApp()" title="Install CivicFix as an app">⤓ Install App</button>
+    <button class="icon-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+    <button class="primary" onclick="openModal()">+ Report Issue</button>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div>
+      <p class="eyebrow">REAL-WORLD PROBLEM SOLVING</p>
+      <h1>Make your neighborhood <span>better.</span></h1>
+      <p class="hero-text">Report civic problems, upvote what matters most, discuss solutions, and track resolution from one live dashboard.</p>
+      <div class="hero-cta">
+        <button class="primary big" onclick="openModal()">Report a problem →</button>
+        <a class="ghost big" href="#analytics">View analytics</a>
+      </div>
+    </div>
+    <div class="hero-card">
+      <div class="pulse"></div>
+      <h3>Smart Priority Engine</h3>
+      <p>Issues are scored using severity, community impact and urgency — then boosted by community upvotes.</p>
+      <div class="formula">Priority = 45% Severity + 30% Impact + 25% Urgency</div>
+    </div>
+  </section>
+
+  <section class="stats" id="stats"></section>
+
+  <section id="map-section">
+    <div class="section-head">
+      <div><p class="eyebrow">LIVE MAP</p><h2>Where problems arise</h2></div>
+      <div class="map-legend">
+        <span><i class="dot" style="background:#f43f5e"></i>Reported</span>
+        <span><i class="dot" style="background:#f59e0b"></i>In Progress</span>
+        <span><i class="dot" style="background:#10b981"></i>Resolved</span>
+      </div>
+    </div>
+    <div class="map-toolbar">
+      <div class="map-search">
+        <input id="mapSearch" placeholder="Search an area — e.g. Salt Lake Sector V, Kolkata" onkeydown="if(event.key==='Enter'){event.preventDefault();searchMapArea();}">
+        <button class="ghost" onclick="searchMapArea()">Find</button>
+      </div>
+      <button class="ghost" onclick="fitMapToResults()">Fit to results</button>
+      <button class="ghost" onclick="openNearby()">🏥 Nearby services</button>
+      <span class="muted map-provider" id="mapProvider"></span>
+    </div>
+    <div id="map" aria-label="Map of reported issues"></div>
+    <p class="muted map-hint">Showing your current search &amp; filter results · issues without a pin don't appear here — pin them when reporting.</p>
+  </section>
+
+  <section id="analytics">
+    <div class="section-head"><div><p class="eyebrow">INSIGHTS</p><h2>Analytics dashboard</h2></div><span class="muted">Updated live</span></div>
+    <div class="analytics-grid">
+      <div class="panel">
+        <h3>Reports by category</h3>
+        <div id="categoryChart" class="bar-chart"></div>
+      </div>
+      <div class="panel">
+        <h3>Priority distribution</h3>
+        <div id="priorityChart" class="priority-chart"></div>
+      </div>
+      <div class="panel wide">
+        <h3>Activity — last 7 days</h3>
+        <div id="trendChart" class="trend"></div>
+      </div>
+      <div class="panel wide ai-panel">
+        <div class="panel-head">
+          <h3>🤖 AI insights &amp; action plan</h3>
+          <button class="link-btn" onclick="loadAiInsights()">Refresh</button>
+        </div>
+        <div id="aiInsights" class="insights-body"><p class="muted">Analysing the live data…</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="funds">
+    <div class="section-head">
+      <div><p class="eyebrow">TRANSPARENT FUNDING</p><h2>Community fund</h2></div>
+      <div class="fund-actions">
+        <button class="primary" onclick="openDonate()">♥ Donate</button>
+        <button class="ghost" style="margin-top:0" onclick="openExpense()">+ Add expense</button>
+      </div>
+    </div>
+    <div class="stats" id="fundsTiles"></div>
+    <div class="ledger">
+      <div class="panel">
+        <h3>Recent contributions</h3>
+        <div id="donationList"></div>
+      </div>
+      <div class="panel">
+        <h3>Expenses on fixes</h3>
+        <div id="expenseList"></div>
+      </div>
+    </div>
+    <p class="muted map-hint">Every rupee in and out is recorded here — full public transparency.</p>
+  </section>
+
+  <section class="toolbar">
+    <input id="search" placeholder="Search issues, locations..." oninput="loadIssues()">
+    <select id="stateFilter" onchange="loadIssues()">
+      <option value="">All states</option>
+    </select>
+    <select id="category" onchange="loadIssues()">
+      <option value="">All categories</option>
+      <option>Pothole</option><option>Garbage</option><option>Streetlight</option>
+      <option>Water Leak</option><option>Road Damage</option><option>Other</option>
+    </select>
+    <select id="status" onchange="loadIssues()">
+      <option value="">All status</option>
+      <option>Reported</option><option>In Progress</option><option>Resolved</option>
+    </select>
+    <select id="sort" onchange="loadIssues()">
+      <option value="priority">Highest priority</option>
+      <option value="upvotes">Most upvoted</option>
+      <option value="newest">Newest</option>
+    </select>
+  </section>
+
+  <section>
+    <div class="section-head"><div><p class="eyebrow">LIVE QUEUE</p><h2>Community issues</h2></div><span id="resultCount"></span></div>
+    <div id="issues" class="issue-grid"></div>
+  </section>
+</main>
+
+<section id="contact">
+  <div class="section-head"><div><p class="eyebrow">SUPPORT</p><h2>Reach out to me</h2></div><span class="muted">Usually replies within a day</span></div>
+  <div class="contact-grid">
+    <div class="panel contact-info">
+      <h3>Website not working properly?</h3>
+      <p>Found a bug, an error page, or something that looks off? Send me a message below — every submission is saved directly to the site database, so your report reaches me even if parts of the app misbehave.</p>
+      <p>You can also reach me directly:</p>
+      <div class="contact-links">
+        <a class="ghost" href="mailto:shruti@example.com" title="Replace with your real email in index.html">Email me</a>
+        <a class="ghost" href="https://github.com/shruti" target="_blank" rel="noopener">GitHub</a>
+        <a class="ghost" href="https://linkedin.com/in/shruti" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </div>
+    <form id="contactForm" class="panel contact-form">
+      <label>Your name<input name="name" required placeholder="e.g. Aarav"></label>
+      <div class="three">
+        <label>Email<input name="email" type="email" required placeholder="you@mail.com"></label>
+        <label>Topic<select name="topic">
+          <option>Website not working</option>
+          <option>Bug report</option>
+          <option>Feature suggestion</option>
+          <option>General feedback</option>
+        </select></label>
+      </div>
+      <label>Message<textarea name="message" required rows="4" maxlength="1000" placeholder="Tell me what went wrong and where..."></textarea></label>
+      <button class="primary big" type="submit">Send message →</button>
+    </form>
+  </div>
+</section>
+
+<footer class="footer">
+  <p><strong>CivicFix</strong> — built with Flask, SQLite &amp; vanilla JS · <a href="/api/stats">API</a></p>
+  <p class="made-by">Made by Shruti</p>
+</footer>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <button class="close" onclick="closeModal()">×</button>
+    <p class="eyebrow">NEW REPORT</p><h2>Report a civic issue</h2>
+    <form id="issueForm">
+      <label>Title<input name="title" id="issueTitle" required placeholder="e.g. Broken streetlight near gate"></label>
+      <label>Category<select name="category" required>
+        <option>Pothole</option><option>Garbage</option><option>Streetlight</option>
+        <option>Water Leak</option><option>Road Damage</option><option>Other</option>
+      </select></label>
+      <label>Location
+        <input name="location" id="locationInput" required placeholder="Area, city" autocomplete="off">
+      </label>
+      <div id="locationSuggest" class="suggest-box"></div>
+      <label>State<select name="state" id="stateSelect"><option value="">Select state</option></select></label>
+      <div class="geo-row">
+        <button type="button" class="ghost geo-btn" onclick="useLiveLocation()">📍 Use my current location</button>
+        <small class="pick-status" id="locStatus">or tap the map below to pin manually</small>
+      </div>
+      <label>Pin the exact spot <small>(optional — recommended)</small></label>
+      <div id="pickMap" class="mini-map" aria-label="Pick issue location on map"></div>
+      <small id="pickStatus" class="pick-status">Tap the map to drop a pin where the problem is.</small>
+      <input type="hidden" name="latitude" id="latitude">
+      <input type="hidden" name="longitude" id="longitude">
+      <label>Description<textarea name="description" id="issueDescription" required rows="3" placeholder="Describe the problem..."></textarea></label>
+      <button type="button" class="ghost ai-btn" onclick="improveDescription(this)">✨ Improve this description with AI</button>
+      <div class="ai-row">
+        <button type="button" class="ghost ai-btn" onclick="aiAutoFill(this)">🤖 Auto-fill details with AI</button>
+        <small class="muted" id="aiFillNote">AI picks the category and scores severity, impact &amp; urgency for you</small>
+      </div>
+      <div class="three">
+        <label>Severity<select name="severity"><option>1</option><option>2</option><option>3</option><option>4</option><option selected>5</option></select></label>
+        <label>Impact<select name="impact"><option>1</option><option>2</option><option>3</option><option>4</option><option selected>5</option></select></label>
+        <label>Urgency<select name="urgency"><option>1</option><option>2</option><option>3</option><option>4</option><option selected>5</option></select></label>
+      </div>
+      <label>Photo of the problem <small>(JPG/PNG/GIF/WebP · max 8 MB · optional)</small>
+        <input type="file" id="imageFile" accept="image/png,image/jpeg,image/gif,image/webp">
+      </label>
+      <img id="imagePreview" alt="Preview" style="display:none">
+      <button class="primary big" type="submit">Submit report</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="commentsModal">
+  <div class="modal-box comments-box">
+    <button class="close" onclick="closeComments()">×</button>
+    <p class="eyebrow">DISCUSSION</p><h2 id="commentsTitle">Issue</h2>
+    <div id="commentsList" class="comments-list"></div>
+    <form id="commentForm" class="comment-form">
+      <input name="author" placeholder="Your name (optional)">
+      <textarea name="message" required rows="2" maxlength="500" placeholder="Add a comment or update..."></textarea>
+      <button class="primary" type="submit">Post comment</button>
+    </form>
+  </div>
+</div>
+<div id="toasts" class="toasts"></div>
+
+<div class="modal" id="donateModal">
+  <div class="modal-box">
+    <button class="close" onclick="closeDonate()">×</button>
+    <p class="eyebrow">SUPPORT THE CAUSE</p><h2>Contribute to a fix</h2>
+    <form id="donateForm">
+      <label>Your name <small>(optional)</small><input name="donor_name" placeholder="Anonymous"></label>
+      <label>Amount (₹)
+        <input name="amount" id="donateAmount" type="number" min="1" max="500000" step="0.01" required placeholder="e.g. 200">
+      </label>
+      <div class="chips">
+        <button type="button" class="chip" onclick="setAmount(50)">₹50</button>
+        <button type="button" class="chip" onclick="setAmount(100)">₹100</button>
+        <button type="button" class="chip" onclick="setAmount(250)">₹250</button>
+        <button type="button" class="chip" onclick="setAmount(500)">₹500</button>
+        <button type="button" class="chip" onclick="setAmount(1000)">₹1,000</button>
+      </div>
+      <label>Support a specific issue <small>(optional)</small>
+        <select name="issue_id" id="donateIssue"><option value="">General fund</option></select>
+      </label>
+      <label>Message <small>(optional)</small><textarea name="message" rows="2" maxlength="300" placeholder="A few words of support..."></textarea></label>
+      <a id="upiLink" class="primary big upi-btn" style="display:none;text-align:center;text-decoration:none" target="_blank" rel="noopener">Pay via UPI app →</a>
+      <small class="pick-status" id="upiHint"></small>
+      <button class="ghost big" type="submit">I've paid — record my contribution</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="expenseModal">
+  <div class="modal-box">
+    <button class="close" onclick="closeExpense()">×</button>
+    <p class="eyebrow">FUND LEDGER</p><h2>Record an expense</h2>
+    <form id="expenseForm">
+      <label>Title<input name="title" required placeholder="e.g. Asphalt bags for pothole repair"></label>
+      <label>Category<select name="category">
+        <option>Materials</option><option>Labor</option><option>Transport</option>
+        <option>Equipment</option><option>Other</option>
+      </select></label>
+      <label>Amount (₹)<input name="amount" type="number" min="1" max="500000" step="0.01" required placeholder="e.g. 350"></label>
+      <label>Linked issue <small>(optional)</small>
+        <select name="issue_id" id="expenseIssue"><option value="">None</option></select>
+      </label>
+      <label>Notes <small>(optional)</small><textarea name="notes" rows="2" maxlength="300" placeholder="Receipt no., vendor, etc."></textarea></label>
+      <button class="primary big" type="submit">Save expense</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="solutionModal">
+  <div class="modal-box solution-box">
+    <button class="close" onclick="closeSolution()">×</button>
+    <p class="eyebrow">AI RESOLUTION PLAN</p><h2 id="solutionTitle">How to fix it</h2>
+    <div id="solutionBody" class="solution-body">
+      <p class="muted">Working out the best fix…</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="nearbyModal">
+  <div class="modal-box">
+    <button class="close" onclick="closeNearby()">×</button>
+    <p class="eyebrow">NEARBY CIVIC SERVICES</p><h2>Who can help nearby</h2>
+    <div class="chips" id="nearbyKinds"></div>
+    <div id="nearbyBody" class="nearby-list"><p class="muted">Finding services around you…</p></div>
+  </div>
+</div>
+
+<button class="ai-fab" id="aiFab" onclick="toggleAssistant()" title="Open the AI assistant">🤖<span class="ai-fab-label">Assistant</span></button>
+
+<aside class="ai-panel" id="aiPanel">
+  <header class="ai-head">
+    <div>
+      <strong>🤖 CivicFix Assistant</strong>
+      <small id="aiProvider">connecting…</small>
+    </div>
+    <button class="ai-close" onclick="toggleAssistant()" title="Close">×</button>
+  </header>
+  <div class="ai-messages" id="aiMessages"></div>
+  <div class="ai-chips" id="aiChips"></div>
+  <form class="ai-form" id="aiForm">
+    <input id="aiInput" placeholder="Ask about your city's issues…" autocomplete="off">
+    <button class="primary" type="submit">Send</button>
+  </form>
+</aside>
+
+<script src="/app.js"></script>
+</body>
+</html>

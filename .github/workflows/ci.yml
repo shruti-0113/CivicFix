@@ -49,13 +49,15 @@ jobs:
   deploy:
     name: Deploy to Render
     needs: test
-    # Only on green pushes to main, and only once the Render secrets exist.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.RENDER_API_KEY != ''
+    # Only on green pushes to main.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production
 
     steps:
       - name: Deploy the main branch to Render
+        # Skipped until the Render secrets are added to the repository.
+        if: ${{ secrets.RENDER_API_KEY != '' }}
         uses: render-oss/render-deploy@v1
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}

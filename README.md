@@ -119,14 +119,19 @@ GitHub Actions runs the same suite on every push and pull request against Python
 Note: Render's free tier has ephemeral disk — the database resets on restarts.
 
 ### Auto-deploy from GitHub Actions
-`.github/workflows/ci.yml` tests on every push and then deploys `main` to Render using the official `render-oss/render-deploy` action. Add two repository secrets to switch it on:
+`.github/workflows/ci.yml` tests on every push and then deploys `main` to Render using the official `render-oss/render-deploy` action. Add one repository **variable** and one repository **secret** to switch it on:
 
-| Secret | Where to get it |
-|---|---|
-| `RENDER_API_KEY` | render.com → Account Settings → API Keys |
-| `RENDER_SERVICE_ID` | Your service → Settings → the Service ID at the bottom |
+| Type | Name | Where to get it |
+|---|---|---|
+| Variable | `RENDER_SERVICE_ID` | Your service → Settings → the Service ID at the bottom |
+| Secret | `RENDER_API_KEY` | render.com → Account Settings → API Keys |
 
-Until `RENDER_API_KEY` is set the deploy job is skipped and CI stays green.
+```bash
+gh variable set RENDER_SERVICE_ID --body "srv-xxxx"
+gh secret set RENDER_API_KEY
+```
+
+Until the variable is set the deploy job is skipped and CI stays green.
 
 ### PythonAnywhere (persistent free SQLite, recommended for this project)
 1. Upload/clone the project on pythonanywhere.com

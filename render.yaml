@@ -22,3 +22,9 @@ services:
         sync: false
       - key: GROQ_API_KEY
         sync: false
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_BASE_URL
+        sync: false
+      - key: LLM_MODEL
+        sync: false

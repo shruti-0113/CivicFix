@@ -25,6 +25,10 @@ import re
 import urllib.error
 import urllib.request
 
+from env_loader import load_dotenv
+
+load_dotenv()
+
 TIMEOUT = 45
 
 AI_CATEGORIES = ["Pothole", "Garbage", "Streetlight", "Water Leak", "Road Damage", "Other"]

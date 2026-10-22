@@ -23,6 +23,10 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+from env_loader import load_dotenv
+
+load_dotenv()
+
 GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY", "").strip()
 
 GEOCODE_URL = "https://maps.googleapis.com/maps/api/geocode/json"

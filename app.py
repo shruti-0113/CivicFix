@@ -7,8 +7,13 @@ import json
 import re
 from datetime import datetime, timezone
 
-import google_maps
-import ai_assistant
+from env_loader import load_dotenv
+
+load_dotenv()
+
+# Imported after load_dotenv() so the Maps and AI modules pick up .env values.
+import google_maps  # noqa: E402
+import ai_assistant  # noqa: E402
 
 app = Flask(__name__, static_folder="frontend", static_url_path="")
 CORS(app)

@@ -1,5 +1,9 @@
 # CivicFix — Real-World Civic Issue Resolution Platform
 
+[![CI & Deploy](https://github.com/shruti-0113/CivicFix/actions/workflows/ci.yml/badge.svg)](https://github.com/shruti-0113/CivicFix/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 CivicFix is a portfolio-grade full-stack web app for reporting and prioritizing local civic problems such as potholes, garbage, streetlights and water leaks. It now ships with **Google Maps Platform integration** and a built-in **AI assistant** that classifies reports, writes field repair plans and answers questions from live platform data.
 
 ## Features
@@ -11,6 +15,9 @@ CivicFix is a portfolio-grade full-stack web app for reporting and prioritizing 
 - Responsive UI
 - REST API with Flask + SQLite
 - Seed data for instant demo
+- Google Maps Platform search, directions and nearby civic services (with an OpenStreetMap fallback)
+- LLM assistant: auto-classify reports, rewrite descriptions, generate field repair plans, city insights and grounded chat
+- 28 automated API tests running in CI on every push
 
 ## Maps integration (Google Maps Platform)
 `google_maps.py` wraps the Maps Platform on the **server side** — the API key never reaches the browser bundle.
@@ -70,13 +77,56 @@ Open http://127.0.0.1:5000
 
 No extra Python packages are needed — the Maps and AI integrations use only the standard library.
 
+## Configuration
+
+Every setting is optional. Copy the template and fill in only what you need:
+
+```bash
+cp .env.example .env        # Windows: copy .env.example .env
+```
+
+CivicFix reads `.env` at startup through `env_loader.py` (standard library only, no `python-dotenv` needed). Real environment variables always win, so a hosting platform can override anything set locally, and the file is resolved next to the project so it works from any directory. `.env` is git-ignored. Set `CIVICFIX_SKIP_DOTENV=1` to ignore the file completely — the test suite does this so it always runs against the offline rule engine.
+
+| Variable | Purpose |
+|---|---|
+| `GOOGLE_MAPS_API_KEY` | Enables the Google Maps Platform. Empty → free OpenStreetMap fallback |
+| `UPI_ID` | Your UPI ID for the "Pay via UPI" contribution links |
+| `AI_PROVIDER` | `auto` · `openai` · `gemini` · `anthropic` · `groq` · `custom` |
+| `OPENAI_API_KEY` | OpenAI key (`OPENAI_BASE_URL`, `OPENAI_MODEL` optional) |
+| `GEMINI_API_KEY` | Google Gemini key (`GEMINI_MODEL` optional) |
+| `ANTHROPIC_API_KEY` | Anthropic key (`ANTHROPIC_MODEL` optional) |
+| `GROQ_API_KEY` | Groq key (`GROQ_MODEL` optional) |
+| `LLM_API_KEY` / `LLM_BASE_URL` / `LLM_MODEL` | Any OpenAI-compatible server |
+| `PORT` / `FLASK_DEBUG` | Server port and debug mode (set `FLASK_DEBUG=0` in production) |
+
+## Tests
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+28 tests cover the issue lifecycle, filters and search, the community fund ledger, the AI triage/describe/resolve/insights/assistant endpoints and the Maps request validation. The suite uses a throw-away SQLite database, needs no API keys and makes no network calls — it also asserts that every database connection is closed.
+
+GitHub Actions runs the same suite on every push and pull request against Python 3.10 and 3.12.
+
 ## Deploy online (free)
 
 ### Render (easiest)
-1. Push this folder to a GitHub repo
-2. On render.com → New → Blueprint → select the repo (uses `render.yaml`)
-3. Done — you get `https://civicfix-xxxx.onrender.com`
+1. On render.com → New → Blueprint → select this repo (uses `render.yaml`)
+2. Add `GOOGLE_MAPS_API_KEY` / your AI keys under Environment variables
+3. Done — you get `https://civicfix-xxxx.onrender.com`, and **every push to `main` redeploys automatically**
+
 Note: Render's free tier has ephemeral disk — the database resets on restarts.
+
+### Auto-deploy from GitHub Actions
+`.github/workflows/ci.yml` tests on every push and then deploys `main` to Render using the official `render-oss/render-deploy` action. Add two repository secrets to switch it on:
+
+| Secret | Where to get it |
+|---|---|
+| `RENDER_API_KEY` | render.com → Account Settings → API Keys |
+| `RENDER_SERVICE_ID` | Your service → Settings → the Service ID at the bottom |
+
+Until `RENDER_API_KEY` is set the deploy job is skipped and CI stays green.
 
 ### PythonAnywhere (persistent free SQLite, recommended for this project)
 1. Upload/clone the project on pythonanywhere.com

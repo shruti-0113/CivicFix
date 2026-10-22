@@ -15,11 +15,20 @@ load_dotenv()
 import google_maps  # noqa: E402
 import ai_assistant  # noqa: E402
 
-app = Flask(__name__, static_folder="frontend", static_url_path="")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
+
+app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
 CORS(app)
 app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024  # 8 MB upload cap
 
-DB = "civicfix.db"
+# Where the SQLite file lives. Serverless hosts (Vercel) mount the project
+# folder read-only and only allow writes under /tmp, so the database is placed
+# there instead. It is ephemeral on those hosts — see the README.
+if os.environ.get("VERCEL"):
+    DB = "/tmp/civicfix.db"
+else:
+    DB = os.path.join(BASE_DIR, "civicfix.db")
 
 # Paste your Google Maps API key here (enable "Maps JavaScript API" in Google Cloud),
 # or set the GOOGLE_MAPS_API_KEY environment variable when hosting.
@@ -47,7 +56,7 @@ AI_STATUS = ai_assistant.status()
 # opens GPay / PhonePe / Paytm with the amount pre-filled. No gateway fees.
 UPI_ID = os.environ.get("UPI_ID", "")
 
-UPLOAD_DIR = os.path.join("frontend", "uploads")
+UPLOAD_DIR = os.path.join("/tmp", "uploads") if os.environ.get("VERCEL") else os.path.join(FRONTEND_DIR, "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_IMAGE_TYPES = {
     b"\xff\xd8\xff": ".jpg",
@@ -192,7 +201,7 @@ def serialize(row):
 
 @app.get("/")
 def home():
-    return send_from_directory("frontend", "index.html")
+    return send_from_directory(FRONTEND_DIR, "index.html")
 
 @app.get("/api/issues")
 def get_issues():
@@ -400,11 +409,17 @@ def upload_image():
     filename = uuid.uuid4().hex + ext
     with open(os.path.join(UPLOAD_DIR, filename), "wb") as f:
         f.write(data)
-    return jsonify({"url": f"/uploads/{filename}"}), 201
+    return jsonify({"url": f"/api/uploads/{filename}"}), 201
 
 
 @app.get("/api/uploads/<path:filename>")
 def uploaded_file(filename):
+    return send_from_directory(UPLOAD_DIR, filename)
+
+
+@app.get("/uploads/<path:filename>")
+def uploaded_file_legacy(filename):
+    """Keeps older stored image URLs working."""
     return send_from_directory(UPLOAD_DIR, filename)
 
 

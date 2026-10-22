@@ -1,0 +1,31 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python",
+      "config": {
+        "includeFiles": [
+          "frontend/**",
+          "app.py",
+          "ai_assistant.py",
+          "google_maps.py",
+          "env_loader.py"
+        ],
+        "excludeFiles": [
+          "tests/**",
+          ".github/**",
+          "venv/**",
+          "**/__pycache__/**"
+        ]
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.py"
+    }
+  ]
+}

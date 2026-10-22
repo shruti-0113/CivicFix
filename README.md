@@ -166,3 +166,23 @@ Built a full-stack civic issue management platform using Flask, SQLite, JavaScri
 | POST | `/api/ai/resolve` | Field repair plan for an issue |
 | GET | `/api/ai/insights` | City-level insights from live data |
 | POST | `/api/ai/assistant` | Grounded assistant chat |
+
+## Project structure
+```
+CivicFix/
+├── app.py                  Flask app: routes, DB schema, issue + fund logic
+├── google_maps.py          Google Maps Platform wrapper + OpenStreetMap fallback
+├── ai_assistant.py         LLM providers, rule engine and repair playbooks
+├── env_loader.py           Dependency-free .env reader
+├── requirements.txt        Flask, Flask-Cors (no other runtime dependencies)
+├── render.yaml             Render blueprint for one-click deploys
+├── .env.example            Template for every optional setting
+├── tests/
+│   └── test_api.py         28 hermetic API tests
+├── .github/workflows/
+│   └── ci.yml              Tests on push + auto-deploy to Render
+└── frontend/               PWA: index.html, app.js, style.css, sw.js, icons
+```
+
+## License
+MIT — see [LICENSE](LICENSE). Copyright © 2026 Shruti.
